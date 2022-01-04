@@ -25,18 +25,18 @@ public class AnalysisServiceImpl {
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         AnalysisContext.analysisContext.put("analysisStartDate", format.parse(analysisStartDate));
         AnalysisContext.analysisContext.put("analysisEndDate", format.parse(analysisEndDate));
-        DataFrame pickUpResult =new DataFrame(CommonConstants.ANALYSIS_RESULT_COLUMNS);
-        AnalysisContext.analysisContext.put("pickUpResult",pickUpResult);
+        DataFrame pickUpResult = new DataFrame(CommonConstants.ANALYSIS_RESULT_COLUMNS);
+        AnalysisContext.analysisContext.put("pickUpResult", pickUpResult);
 
         dataUpdateService.setStockListInContext();
 
-        File folder = new File(AnalysisContext.dataFolderPath+"\\all");
+        File folder = new File(AnalysisContext.dataFolderPath + "\\all");
         File[] files = folder.listFiles();
 
         ThreadPoolExecutor threadPoolExecutor = ThreadPool.newThreadPool();
         int start = 0;
         int end = 0;
-        int steplength = 50;
+        int steplength = 200;
         int step = 1;
         while (end < files.length - 1) {
             List<Future> futureList = new ArrayList<>();
@@ -56,8 +56,8 @@ public class AnalysisServiceImpl {
             start = end + 1;
         }
         pickUpResult = (DataFrame) AnalysisContext.analysisContext.get("pickUpResult");
-        pickUpResult=pickUpResult.sortBy("选中日期");
-        pickUpResult.writeCsv("./pickUpStockData.csv");
+        pickUpResult = pickUpResult.sortBy("选中日期");
+        pickUpResult.writeCsv(AnalysisContext.dataFolderPath + "\\basics\\pickUpStockData.csv");
     }
 }
 
