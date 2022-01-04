@@ -1,35 +1,64 @@
 package com.stockanalysis.service.impl;
 
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import scala.Function1;
-import scala.runtime.Static;
+import com.stockanalysis.Thread.ThreadPool;
+import com.stockanalysis.service.DataUpdate.DataUpdateService;
+import com.stockanalysis.service.context.AnalysisContext;
+import com.stockanalysis.service.context.CommonConstants;
+import joinery.DataFrame;
 
-import java.io.Serializable;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.io.File;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 
-public class AnalysisServiceImpl implements Serializable {
+public class AnalysisServiceImpl {
 
+    private DataUpdateService dataUpdateService = new DataUpdateService();
 
-    private static final long serialVersionUID = 5144518456495043542L;
+    public void getDataAfterPickUp(String analysisStartDate, String analysisEndDate) throws ParseException, IOException, ExecutionException, InterruptedException {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        AnalysisContext.analysisContext.put("analysisStartDate", format.parse(analysisStartDate));
+        AnalysisContext.analysisContext.put("analysisEndDate", format.parse(analysisEndDate));
+        DataFrame pickUpResult =new DataFrame(CommonConstants.ANALYSIS_RESULT_COLUMNS);
+        AnalysisContext.analysisContext.put("pickUpResult",pickUpResult);
 
-    public void testGetCsv(Dataset<Row> dataset  ) {
+        dataUpdateService.setStockListInContext();
 
-        dataset.rdd().foreach(new functionTest());
+        File folder = new File(AnalysisContext.dataFolderPath+"\\all");
+        File[] files = folder.listFiles();
 
-    }
-
-    private class functionTest implements Function1,Serializable
-    {
-
-        @Override
-        public Object apply(Object v1) {
-            Row row=(Row)v1;
-            System.out.println((String) row.getAs("名称"));
-            return null;
+        ThreadPoolExecutor threadPoolExecutor = ThreadPool.newThreadPool();
+        int start = 0;
+        int end = 0;
+        int steplength = 50;
+        int step = 1;
+        while (end < files.length - 1) {
+            List<Future> futureList = new ArrayList<>();
+            end = steplength * step >= (files.length - 1) ? (files.length - 1) : steplength * step;
+            for (int i = start; i <= end; i++) {
+                String stockCode = files[i].getName().substring(0, files[i].getName().lastIndexOf("."));
+                AnalysisSingleStockThread analysisSingleStockThread = new AnalysisSingleStockThread(stockCode);
+                Thread thread = new Thread(analysisSingleStockThread);
+                Future future = threadPoolExecutor.submit(thread);
+                futureList.add(future);
+            }
+            for (Future future : futureList) {
+                future.get();
+            }
+            System.gc();
+            step++;
+            start = end + 1;
         }
+        pickUpResult = (DataFrame) AnalysisContext.analysisContext.get("pickUpResult");
+        pickUpResult=pickUpResult.sortBy("选中日期");
+        pickUpResult.writeCsv("./pickUpStockData.csv");
     }
-
 }
 
 
