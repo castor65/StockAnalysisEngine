@@ -3,6 +3,8 @@ package com.stockanalysis.service.algorithm;
 import joinery.DataFrame;
 import lombok.SneakyThrows;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -11,8 +13,7 @@ import java.util.List;
 public class Algorithm {
 
     public boolean pickUp(DataFrame singelStockGloble, Date calculateDate) {
-        boolean flag = false;
-
+        boolean flag = true;
         DataFrame singleStock = singelStockGloble.select(new DataFrame.Predicate<Object>() {
             @SneakyThrows
             @Override
@@ -22,12 +23,31 @@ public class Algorithm {
                 return date.equals(calculateDate);
             }
         });
+        try {
+            Method[] methods = this.getClass().getDeclaredMethods();
+            for (Method method : methods) {
+                if (method.getName().indexOf("condition") == 0) {
+                    Boolean ifPassConditon = null;
+                    ifPassConditon = (Boolean) method.invoke(this, singleStock);
+                    if (!ifPassConditon) {
+                        flag = false;
+                        break;
+                    }
+                }
+            }
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            flag = false;
+            e.printStackTrace();
+        }
+        return flag;
+    }
+    private boolean condition1(DataFrame singleStock) {
+        Boolean flag = false;
         if (singleStock.col("涨跌幅").size() > 0) {
             if (Float.parseFloat(String.valueOf(singleStock.col("涨跌幅").get(0))) > 9.9) {
                 flag = true;
             }
         }
-
         return flag;
     }
 }
