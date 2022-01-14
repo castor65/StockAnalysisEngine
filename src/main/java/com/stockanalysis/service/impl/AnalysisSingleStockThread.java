@@ -7,10 +7,7 @@ import com.stockanalysis.service.context.CommonConstants;
 import joinery.DataFrame;
 import lombok.SneakyThrows;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class AnalysisSingleStockThread implements Runnable {
 
@@ -117,26 +114,23 @@ public class AnalysisSingleStockThread implements Runnable {
         });
         singleStock = singleStock.sortBy("日期");
 
-        singleStock = singleStock.slice(0, 11);
+        singleStock = singleStock.slice(0, 31);
         DataFrame singleStockPickUpData = new DataFrame(CommonConstants.ANALYSIS_RESULT_COLUMNS);
 
-        singleStockPickUpData = singleStockPickUpData.append(
-                Arrays.asList(new Object[]{
-                        stockCode,
-                        stockName,
-                        singleStock.slice(0, 1).col("日期").get(0),//"选中日期"
-                        singleStock.slice(0, 1).col("涨跌幅").get(0), //"选中当日涨跌幅":
-                        singleStock.slice(1, 2).col("涨跌幅").get(0),     // "选中1日涨跌幅":
-                        singleStock.slice(2, 3).col("涨跌幅").get(0), //  "选中2日涨跌幅":
-                        singleStock.slice(3, 4).col("涨跌幅").get(0),   //  "选中3日涨跌幅":
-                        singleStock.slice(4, 5).col("涨跌幅").get(0), //  "选中4日涨跌幅":
-                        singleStock.slice(5, 6).col("涨跌幅").get(0),//   "选中5日涨跌幅":
-                        singleStock.slice(6, 7).col("涨跌幅").get(0),   //  "选中6日涨跌幅":
-                        singleStock.slice(7, 8).col("涨跌幅").get(0), //  "选中7日涨跌幅":
-                        singleStock.slice(8, 9).col("涨跌幅").get(0), //  "选中8日涨跌幅":
-                        singleStock.slice(9, 10).col("涨跌幅").get(0),  //  "选中9日涨跌幅":
-                        singleStock.slice(10, 11).col("涨跌幅").get(0)  //  "选中10日涨跌幅"
-                }));
+        ArrayList<Object> pickUpdataList= new ArrayList(Arrays.asList(new Object[]{
+                stockCode,
+                stockName,
+                singleStock.slice(0, 1).col("日期").get(0),//"选中日期"
+
+        }));
+        for(int i=0;i<=30;i++)
+        {
+            pickUpdataList.add( singleStock.slice(i, i+1).col("涨跌幅").get(0));
+        }
+        singleStockPickUpData = singleStockPickUpData.append(pickUpdataList);
+
+
+
 
         return singleStockPickUpData;
     }

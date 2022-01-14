@@ -43,7 +43,7 @@ public class Maintest {
 //        DataFrame pickUpResult =new DataFrame(CommonConstants.ANALYSIS_RESULT_COLUMNS);
 //        AnalysisContext.analysisContext.put("pickUpResult",pickUpResult);
 //
-//        AnalysisSingleStockThread analysisSingleStockThread=new AnalysisSingleStockThread("688778");
+//        AnalysisSingleStockThread analysisSingleStockThread=new AnalysisSingleStockThread("000519");
 //         analysisSingleStockThread.getDataAfterPickUp();
 //
 //        pickUpResult = (DataFrame) AnalysisContext.analysisContext.get("pickUpResult");
@@ -51,7 +51,7 @@ public class Maintest {
 //        pickUpResult.writeCsv("./pickUpStockData.csv");
 
 
-// test
+//// test
         AnalysisServiceImpl analysisService=new AnalysisServiceImpl();
         analysisService.getDataAfterPickUp("2021-01-01","2021-12-20");
 

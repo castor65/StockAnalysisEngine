@@ -221,6 +221,27 @@ public class Algorithm2 extends Algorithm {
         }
         return flag;
     }
+
+
+
+    /**
+     * A2:=最近30个交易日涨跌幅小于50%
+     */
+    public boolean condition12(DataFrame singelStock, Date calculateDate) {
+        if (singelStock.index().size() < 30) {
+            return false;
+        }
+        Boolean flag = false;
+        DataFrame singleStockInCondition = singelStock.slice(0, 30);
+
+        BigDecimal sumChangeRate = new BigDecimal(singleStockInCondition.sum().col("涨跌幅").get(0).toString());
+        BigDecimal conditionValue = new BigDecimal(50);
+        if (sumChangeRate.compareTo(conditionValue)==-1)// a.compareTo(b) > -1 a >=b
+        {
+            flag = true;
+        }
+        return flag;
+    }
 }
 
 
